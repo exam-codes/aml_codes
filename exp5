@@ -1,0 +1,70 @@
+import numpy as np
+
+# Define states and indices
+state_to_index = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4}
+index_to_state = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E'}
+
+# Reward matrix
+reward_matrix = np.array([
+    [0, 1, 0, 0, 0],
+    [1, 0, 1, 0, 0],
+    [0, 1, 0, 1, 0],
+    [0, 0, 1, 0, 1],
+    [0, 0, 0, 1, 0]
+])
+
+print("Reward Matrix:")
+print(reward_matrix)
+
+gamma = 0.95     
+alpha = 0.1
+
+print("Discount Factor (Gamma):", gamma)
+
+
+state_size = len(state_to_index)
+action_size = state_size
+Q_matrix = np.zeros((state_size, action_size))
+
+def q_learning_update(s, a, reward, s2, Q_matrix):
+    Q_matrix[s, a] = (1 - alpha) * Q_matrix[s, a] + alpha * (reward + gamma * np.max(Q_matrix[s2, :]))
+    return s2, Q_matrix
+
+
+def get_action(state, Q_matrix, epsilon=0.1):
+    if np.random.random() < epsilon:
+        return np.random.choice(action_size)
+    return np.argmax(Q_matrix[state, :])
+
+
+def find_optimal_route(initial_state, goal_state, Q_matrix, episodes=1000):
+    for _ in range(episodes):
+        state = initial_state
+        while state != goal_state:
+            action = get_action(state, Q_matrix)
+            next_state = action
+            reward = reward_matrix[state, action]
+            state, Q_matrix = q_learning_update(state, action, reward, next_state, Q_matrix)
+    return Q_matrix
+
+
+initial_state = state_to_index['A']
+goal_state = state_to_index['E']
+Q_matrix = find_optimal_route(initial_state, goal_state, Q_matrix)
+
+print("\nQ-matrix:")
+print(Q_matrix)
+
+optimal_actions = [np.argmax(Q_matrix[state, :]) for state in range(state_size)]
+optimal_actions = [index_to_state[action] for action in optimal_actions]
+print("\nOptimal Actions for each state:", optimal_actions)
+
+
+for state in state_to_index:
+    for action in state_to_index:
+        state_idx = state_to_index[state]
+        action_idx = state_to_index[action]
+        immediate_reward = reward_matrix[state_idx, action_idx]
+        print(f"Immediate Reward for moving from state {state} to state {action}: {immediate_reward}")
+
+
