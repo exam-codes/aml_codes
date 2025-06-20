@@ -1,0 +1,76 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+import seaborn as sns
+import warnings
+warnings.filterwarnings("ignore")
+# Load the Air Passengers dataset
+data = pd.read_csv("AirPassengers.csv", header=0,index_col=0,parse_dates=True)
+
+data.head()
+
+#A. Checking Stationary
+#C. Implementing Dickey Fuller Test
+def check_stationary(data):
+    result = adfuller(data)
+    print('ADF Statistic: %f' % result[0])
+    print('p-value: %f' % result[1])
+    print('Critical Values:')
+    for key, value in result[4].items():
+        print('\t%s: %.3f' % (key, value))
+check_stationary(data)
+
+
+
+#B. Converting a non-stationary data to stationary
+def make_stationary(data):
+    stationary_data = data.diff().dropna()
+    return stationary_data
+stationary_data = make_stationary(data)
+
+
+check_stationary(stationary_data)
+
+#D. Plot ACF and PACF
+plot_acf(stationary_data)
+plot_pacf(stationary_data)
+plt.show()
+
+plt.figure(figsize=(10, 6))
+plt.plot(data.index, data["#Passengers"])
+plt.title("Airline Passengers Over Time")
+plt.xlabel("Year")
+plt.ylabel("Number of Passengers")
+plt.grid(True)
+plt.show()
+
+
+#E. Generating the Arima Plot
+import pmdarima as pm
+auto_model = pm.auto_arima(data, seasonal=False, stepwise=True,
+                           suppress_warnings=True, trace=True,
+                           error_action='ignore', information_criterion='aic')
+print("Optimal (p, d, q) values:", auto_model.order)
+
+
+from statsmodels.tsa.arima.model import ARIMA
+
+model = ARIMA(data, order=(4, 1, 3))
+model_fit = model.fit()
+
+# Plot the stationary series and fitted values
+plt.figure(figsize=(10, 6))
+plt.plot(stationary_data, label="Actual")
+plt.plot(model_fit.fittedvalues, color='red', label="ARIMA")
+plt.title("ARIMA - Airline Passengers")
+plt.xlabel("Year")
+plt.ylabel("Passengers")
+plt.legend()
+plt.show()
+
+
+#F. TSA forecasting
+forecast = model_fit.forecast(steps=10)
+print("Forecasted values:\n", forecast)
