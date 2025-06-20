@@ -1,0 +1,54 @@
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import accuracy_score
+
+iris = load_iris()
+X, y = iris.data, iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+clf = AdaBoostClassifier(n_estimators=50, learning_rate=1, random_state=42)
+cv_scores = cross_val_score(clf, X_train, y_train, cv=5)
+
+print("Cross-validation scores:", cv_scores)
+print("Mean cross-validation score:", cv_scores.mean())
+
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Test set accuracy:", accuracy)
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+n_estimators_values = [10, 50, 100, 500, 1000, 5000]
+cv_scores_mean = []
+
+for n_estimators in n_estimators_values:
+    clf = AdaBoostClassifier(n_estimators=n_estimators, learning_rate=1, random_state=42)
+    cv_scores = cross_val_score(clf, X_train, y_train, cv=5)
+    cv_scores_mean.append(cv_scores.mean())
+
+plt.plot(n_estimators_values, cv_scores_mean, marker='o')
+plt.xlabel('Number of Trees')
+plt.ylabel('Mean Cross-Validation Score')
+plt.title('AdaBoost Performance with Different Numbers of Trees')
+plt.show()
+
+
+learning_rates = np.linspace(0.1, 2, 20)
+cv_scores_mean = []
+
+for learning_rate in learning_rates:
+    clf = AdaBoostClassifier(n_estimators=50, learning_rate=learning_rate, random_state=42)
+    cv_scores = cross_val_score(clf, X_train, y_train, cv=5)
+    cv_scores_mean.append(cv_scores.mean())
+
+plt.plot(learning_rates, cv_scores_mean, marker='o')
+plt.xlabel('Learning Rate')
+plt.ylabel('Mean Cross-Validation Score')
+plt.title('AdaBoost Performance with Different Learning Rates')
+plt.show()
