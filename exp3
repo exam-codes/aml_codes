@@ -1,0 +1,28 @@
+import numpy
+import matplotlib.pyplot as mtp
+import pandas as pd
+
+ dataset=pd.read_csv("GroceryStoreDataSet.csv")
+ dataset
+
+dataset = pd.read_csv('GroceryStoreDataSet.csv', names=["products"])
+
+dataset
+
+dataset.shape
+
+transactions=[]
+for i in range (0,20):
+ transactions.append([str(dataset.values[i,j]) for j in range(0,1)])
+
+ dataset=list(dataset["products"].apply(lambda x:x.split(',')))
+ dataset
+
+pip install apyori
+
+ from apyori import apriori
+ rules=apriori(transactions, min_support=0.003, min_confidence=0.003)
+ rules
+
+results=list(rules)
+results
